@@ -1,7 +1,8 @@
 from rest_framework import serializers
-from .models import Account
+from .models import AccountBasic
+
 
 class AccountSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Account
+        model = AccountBasic
         fields = '__all__'
