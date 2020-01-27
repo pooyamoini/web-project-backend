@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
+from django.contrib.auth.hashers import make_password
 from .models import AccountBasic
 from .serializers import AccountSerializer
 
@@ -46,8 +47,10 @@ def edit(request):
             account = AccountBasic.objects.get(pk=data['username'])
             serializer = AccountSerializer(account, data=data)
             if serializer.is_valid():
-                serializer.save()
-                return Response({'msg': 'successfull'}, status.HTTP_200_OK)
+                if (account.password == data["password"]):
+                    serializer.save()
+                    return Response({'msg': 'successfull'}, status.HTTP_200_OK)
+                return Response({'msg': 'wrong password'}, status.HTTP_406_NOT_ACCEPTABLE)
             else:
                 return Response({'msg': 'something wrong'}, status.HTTP_406_NOT_ACCEPTABLE)
         except AccountBasic.DoesNotExist:
@@ -61,13 +64,16 @@ def edit(request):
 @api_view(['DELETE'])
 def del_profile(request):
     data = request.data
-    if len(data.keys() & {'username'}) == 1:
+    if len(data.keys() & {'username', 'password'}) >= 2:
         try:
             account = AccountBasic.objects.get(pk=data['username'])
             account_serializer = AccountSerializer(account, data=data)
             if account_serializer.is_valid():
-                account.delete()
-                return Response({'msg': 'successfull'}, status.HTTP_200_OK)
+                if account.password == data["password"]:
+                    account.delete()
+                    return Response({'msg': 'successfull'}, status.HTTP_200_OK)
+                else:
+                    return Response({'msg': 'wrong password'}, status.HTTP_406_NOT_ACCEPTABLE)
             else:
                 return Response({'msg': 'something wrong'}, status.HTTP_406_NOT_ACCEPTABLE)
         except AccountBasic.DoesNotExist:
