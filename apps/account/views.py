@@ -19,19 +19,6 @@ def get_accounts(request):
 
 
 @csrf_exempt
-@api_view(['GET', 'POST'])
-def sample_test(request):
-    if request.method == 'GET':
-        return HttpResponse('hello')
-    serializer = AccountSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        print(serializer, end="\n\n\n\n\n\n")
-        return HttpResponse('hi')
-    return HttpResponse('bye')
-
-
-@csrf_exempt
 @api_view(['POST'])
 def signup(request):
     data = request.data
@@ -60,6 +47,26 @@ def edit(request):
             serializer = AccountSerializer(account, data=data)
             if serializer.is_valid():
                 serializer.save()
+                return Response({'msg': 'successfull'}, status.HTTP_200_OK)
+            else:
+                return Response({'msg': 'something wrong'}, status.HTTP_406_NOT_ACCEPTABLE)
+        except AccountBasic.DoesNotExist:
+            return Response({'msg': 'username does not exist'}, status.HTTP_406_NOT_ACCEPTABLE)
+
+    content = {'msg': 'Not valid Data'}
+    return(Response(content, status.HTTP_406_NOT_ACCEPTABLE))
+
+
+@csrf_exempt
+@api_view(['DELETE'])
+def del_profile(request):
+    data = request.data
+    if len(data.keys() & {'username'}) == 1:
+        try:
+            account = AccountBasic.objects.get(pk=data['username'])
+            account_serializer = AccountSerializer(account, data=data)
+            if account_serializer.is_valid():
+                account.delete()
                 return Response({'msg': 'successfull'}, status.HTTP_200_OK)
             else:
                 return Response({'msg': 'something wrong'}, status.HTTP_406_NOT_ACCEPTABLE)
