@@ -48,3 +48,23 @@ def signup(request):
                 return Response({'msg': 'something wrong'}, status.HTTP_406_NOT_ACCEPTABLE)
     content = {'msg': 'Not valid Data'}
     return(Response(content, status.HTTP_406_NOT_ACCEPTABLE))
+
+
+@csrf_exempt
+@api_view(['PUT'])
+def edit(request):
+    data = request.data
+    if len(data.keys() & {'email', 'name', 'username', 'password'}) == 4:
+        try:
+            account = AccountBasic.objects.get(pk=data['username'])
+            serializer = AccountSerializer(account, data=data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({'msg': 'successfull'}, status.HTTP_200_OK)
+            else:
+                return Response({'msg': 'something wrong'}, status.HTTP_406_NOT_ACCEPTABLE)
+        except AccountBasic.DoesNotExist:
+            return Response({'msg': 'username does not exist'}, status.HTTP_406_NOT_ACCEPTABLE)
+
+    content = {'msg': 'Not valid Data'}
+    return(Response(content, status.HTTP_406_NOT_ACCEPTABLE))
