@@ -118,9 +118,12 @@ def token_isvalid(request):
         try:
             token = data["token"]
             query_res = LoggInBasic.objects.get(token=token)
-            if (datetime.datetime.now(datetime.timezone.utc) - query_res.token_gen_time).seconds >= 10:
+            if (datetime.datetime.now(datetime.timezone.utc) - query_res.token_gen_time).seconds >= 3600 * 3:
                 return Response({'msg': 'invalid token'}, status.HTTP_406_NOT_ACCEPTABLE)
-            return Response({'msg': 'valid token'}, status.HTTP_200_OK)
+            account = query_res.account
+            data = {'name': account.name, 'username': account.username,
+                    'password': account.password, 'email': account.email}
+            return Response({'msg': 'valid token', 'account': data}, status.HTTP_200_OK)
         except LoggInBasic.DoesNotExist:
             return Response({'msg': 'invalid token'}, status.HTTP_406_NOT_ACCEPTABLE)
 
