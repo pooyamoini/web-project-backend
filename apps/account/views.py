@@ -5,8 +5,11 @@ from rest_framework.decorators import api_view
 from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 from django.contrib.auth.hashers import make_password
-from .models import AccountBasic
-from .serializers import AccountSerializer
+from .models import AccountBasic, LoggInBasic
+from .serializers import AccountSerializer, LogginSerializer
+import string
+import random
+import datetime
 
 
 @csrf_exempt
@@ -76,6 +79,30 @@ def del_profile(request):
                     return Response({'msg': 'wrong password'}, status.HTTP_406_NOT_ACCEPTABLE)
             else:
                 return Response({'msg': 'something wrong'}, status.HTTP_406_NOT_ACCEPTABLE)
+        except AccountBasic.DoesNotExist:
+            return Response({'msg': 'username does not exist'}, status.HTTP_406_NOT_ACCEPTABLE)
+
+    content = {'msg': 'Not valid Data'}
+    return(Response(content, status.HTTP_406_NOT_ACCEPTABLE))
+
+
+@csrf_exempt
+@api_view(['POST'])
+def login(request):
+    data = request.data
+    if len(data.keys() & {'username', 'password'}) >= 2:
+        try:
+            account = AccountBasic.objects.get(pk=data['username'])
+            if account.password == data["password"]:
+                token = ''.join(random.choice(
+                    string.ascii_uppercase + string.digits) for _ in range(75))
+                logged_in_account = LoggInBasic(
+                    account=account, token=token, token_gen_time=datetime.datetime.now())
+                logged_in_account.save()    
+                return Response({'msg': 'successfull', 'token': token}, status.HTTP_200_OK)
+            else:
+                return Response({'msg': 'wrong password'}, status.HTTP_406_NOT_ACCEPTABLE)
+
         except AccountBasic.DoesNotExist:
             return Response({'msg': 'username does not exist'}, status.HTTP_406_NOT_ACCEPTABLE)
 

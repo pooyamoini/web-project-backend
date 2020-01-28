@@ -7,5 +7,6 @@ urlpatterns = [
     url(r'^$', views.get_accounts, name="get_accounts"),
     url('signup', views.signup, name='signup'),
     url('editprofile', views.edit, name='edit-profile'),
-    url('delprofile', views.del_profile, name='delete-profile')
+    url('delprofile', views.del_profile, name='delete-profile'),
+    url('login', views.login, name='login')
 ]
