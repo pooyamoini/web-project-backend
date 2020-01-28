@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-
+import datetime
 from django.db import models
 
 
@@ -19,7 +19,7 @@ class LoggInBasic(models.Model):
     account = models.ForeignKey(
         AccountBasic, primary_key=True, on_delete=models.CASCADE)
     token = models.CharField(max_length=75)
-    token_gen_time = models.DateField()
+    token_gen_time = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.account.name
