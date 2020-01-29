@@ -27,7 +27,7 @@ def login(request):
                 logged_in_account.save()
                 return Response({'msg': 'successfull', 'token': token}, status.HTTP_200_OK)
             else:
-                return Response({'msg': 'wrong password'}, status.HTTP_406_NOT_ACCEPTABLE)
+                return Response({'msg': 'Invalid username/password. \t please try again'}, status.HTTP_406_NOT_ACCEPTABLE)
 
         except AccountBasic.DoesNotExist:
             return Response({'msg': 'username does not exist'}, status.HTTP_406_NOT_ACCEPTABLE)
