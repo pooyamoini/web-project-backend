@@ -29,14 +29,14 @@ def signup(request):
     if len(data.keys() & {'email', 'name', 'username', 'password'}) == 4:
         try:
             account = AccountBasic.objects.get(pk=data['username'])
-            return Response({'msg': 'username exist'}, status.HTTP_406_NOT_ACCEPTABLE)
+            return Response({'msg': 'This username already exist'}, status.HTTP_406_NOT_ACCEPTABLE)
         except AccountBasic.DoesNotExist:
             serializer = AccountSerializer(data=data)
             if serializer.is_valid():
                 serializer.save()
-                return Response({'msg': 'successfull'}, status.HTTP_200_OK)
+                return Response({'msg': 'You are successfully registered'}, status.HTTP_200_OK)
             else:
-                return Response({'msg': 'something wrong'}, status.HTTP_406_NOT_ACCEPTABLE)
+                return Response({'msg': 'something wrong :('}, status.HTTP_406_NOT_ACCEPTABLE)
     content = {'msg': 'Not valid Data'}
     return(Response(content, status.HTTP_406_NOT_ACCEPTABLE))
 
