@@ -88,3 +88,54 @@ def responseGenerator(msg , statusType):
     if statusType == 406:
         statusT = status.HTTP_406_NOT_ACCEPTABLE
     return Response({'msg':msg}, statusT)
+
+
+@csrf_exempt
+@api_view(['GET'])
+def get_single_relation(request):
+    data = request.data
+    ans = follow_and_unfollow_mutual(data)
+    if(type(ans) == Response):
+        return responseGenerator('Invalid Input' , 406)
+    serializer = ans
+    try:
+        relation = AccountFollowType.objects.get(follower_id = data['follower_id'] , followed_id = data['followed_id'])
+        return responseGenerator('Following' , 200)
+    except AccountFollowType.DoesNotExist:
+        return responseGenerator('Not Following' , 406) 
+
+@csrf_exempt
+@api_view(['GET'])
+def get_all_followings(request):
+    data = request.data
+    serializer = AccountFollowTypeSerializer(data = data)
+    if serializer.is_valid():
+        follower_id = data['follower_id']
+        try:
+            account = AccountBasic.objects.get(pk = follower_id)
+            relations = AccountFollowType.objects.filter(follower_id = follower_id)
+            relations_serializer = AccountFollowTypeSerializer(relations , many  = True)
+            return JsonResponse(relations_serializer.data , safe= False)
+        except AccountBasic.DoesNotExist:
+            pass
+    return responseGenerator('Invalid Input' , 406)
+
+@csrf_exempt
+@api_view(['GET'])
+def get_all_followers(request):
+    data = request.data
+    serializer = AccountFollowTypeSerializer(data = data)
+    if serializer.is_valid():
+        followed_id = data['followed_id']
+        try:
+            account = AccountBasic.objects.get(pk = followed_id)
+            relations = AccountFollowType.objects.filter(followed_id = followed_id)
+            relations_serializer = AccountFollowTypeSerializer(relations , many = True)
+            return JsonResponse(relations_serializer.data , safe = False)
+
+
+        except AccountBasic.DoesNotExist:
+            pass
+    return responseGenerator('Invalid Input' , 406)
+
+
