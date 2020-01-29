@@ -18,7 +18,7 @@ class AccountBasic(models.Model):
 class LoggInBasic(models.Model):
     account = models.ForeignKey(
         AccountBasic, primary_key=True, on_delete=models.CASCADE)
-    token = models.CharField(max_length=75)
+    token = models.CharField(max_length=110)
     token_gen_time = models.DateTimeField(auto_now=True)
 
     def __str__(self):
