@@ -20,15 +20,15 @@ def create_post(request):
     if len(data.keys() & {'content', 'image', 'token'}) == 3:
         try:
             account = LoggInBasic.objects.get(token=data['token']).account
-            return Response({'msg': account.name}, status.HTTP_200_OK)
+            id_post = len(Post.objects.all())
+            time_now = datetime.datetime.now()
+            content = data['content']
+            image = data['image']
+            post = Post(account=account, id_post=id_post,
+                        date_post=time_now, content=content, image=image)
+            post.save()
+            return Response({'msg': 'post successfully created'}, status.HTTP_200_OK)
         except LoggInBasic.DoesNotExist:
-            # serializer = AccountSerializer(data=data)
-            # if serializer.is_valid():
-            #     serializer.save()
-            #     return Response({'msg': 'You are successfully registered'}, status.HTTP_200_OK)
-            # else:
-            #     return Response({'msg': 'something wrong :('}, status.HTTP_406_NOT_ACCEPTABLE)
-            return Response({'msg': account.name}, status.HTTP_200_OK)
+            return Response({'msg': 'invalid token'}, HTTP_406_NOT_ACCEPTABLE)
     content = {'msg': 'Not valid Data'}
-    # return(Response(content, status.HTTP_406_NOT_ACCEPTABLE))
-    return Response({'msg': 'ridim'}, status.HTTP_200_OK)
+    return Response({'msg': content}, status.HTTP_406_NOT_ACCEPTABLE)

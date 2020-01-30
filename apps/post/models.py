@@ -6,10 +6,11 @@ from ..account.models import AccountBasic
 
 
 class Post(models.Model):
-    nlikes = models.IntegerField()
-    ndislikes = models.IntegerField()
+    # comments
+    nlikes = models.IntegerField(default=0)
+    ndislikes = models.IntegerField(default=0)
     content = models.CharField(max_length=50000)
-    id = models.IntegerField(primary_key=True)
+    id_post = models.IntegerField(primary_key=True)
     image = models.ImageField(upload_to='statics/images')
     date_post = models.DateTimeField(auto_now=True)
     account = models.ForeignKey(
