@@ -7,19 +7,20 @@ from rest_framework.response import Response
 from apps.account.models import AccountBasic 
 from .models import Comment
 from .serilizer import CommentSerializer
+from _datetime import datetime
 
 @csrf_exempt
 @api_view(['GET'])
 def get_all_comments(request):
     data = request.data
-    serializer = CommentSerializer(data = data)
-    if serializer.is_valid():
+    try:
+        post_id = data['post_id']
         #chech if the post is valid#
-        comments = Comment.objects.filter(post_id = data['post_id'])
-        comments.sort(key = lambda x:x['creation_time'] , reverse = True)
+        comments = Comment.objects.filter(post_id = post_id)
         serializer = CommentSerializer(comments , many = True)
-        return JsonResponse(comments.data , safe= False)
-    else:
+
+        return JsonResponse(serializer.data , safe= False)
+    except Comment.DoesNotExist :
         return responseGenerator('Invalid Request' , 406)
 
 
@@ -34,9 +35,11 @@ def comment(request):
 
     if type(ans) == Response:
         return ans
-    return responseGenerator(ans.validated_data , 200)
-    if comment_exists(data['id']):
-        return responseGenerator('Comment id already exists' , 406)
+    try:
+        if comment_exists(data['id']):
+            return responseGenerator('Comment id already exists' , 406)
+    except Exception:
+        pass
     serializer = ans
     serializer.save()
     return responseGenerator('Comment Created' , 200)
@@ -52,7 +55,8 @@ def delete_comment(request):
         return ans
     if not comment_exists(data['id']):
         return responseGenerator('Comment does not exist' , 406)
-    Comment.objects.delete(id = data['id'])    
+    Comment.objects.get(id = data['id']).delete()
+    return responseGenerator('Deleted Successfull' , 200)    
 
 @csrf_exempt
 @api_view(['POST'])
@@ -62,15 +66,17 @@ def edit_comment(request):
     #check if post is valid
     if type(ans) == Response:
         return ans
-    return responseGenerator('jooon' , 1)
     if not comment_exists(data['id']):
         return responseGenerator('Comment does not exist' , 406)
     instance =  Comment.objects.get(id = data['id'])
+    validated_data = ans.validated_data
     instance.comment = validated_data.get('comment' , instance.comment)
-    instance.edited_time = datetime.now
-    instance.image_name = validated_data('image_name', instance.image_name)
+    instance.edited_time = datetime.now().time()
+    instance.edited_date = datetime.now()
+    
+    instance.image_name = validated_data.get('image_name', instance.image_name)
     instance.save()
-    return responseGeneryator('Comment Edited Successfully' , 200)
+    return responseGenerator('Comment Edited Successfully' , 200)
 
 
 def comment_exists(comment_id):
