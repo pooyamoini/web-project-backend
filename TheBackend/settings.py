@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'apps.account',
     'apps.post',
+    'apps.account_generic',
 ]
 
 # REST_FRAMEWORK = {
