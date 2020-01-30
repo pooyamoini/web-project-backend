@@ -1,0 +1,34 @@
+from django.http import HttpResponse, JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework import status
+from rest_framework.decorators import api_view
+from rest_framework.parsers import JSONParser
+from rest_framework.response import Response
+from django.contrib.auth.hashers import make_password
+from .models import Post
+from ..account.models import LoggInBasic
+from .serializers import PostSerializer
+import string
+import random
+import datetime
+
+
+@csrf_exempt
+@api_view(['POST'])
+def create_post(request):
+    data = request.data
+    if len(data.keys() & {'content', 'image', 'token'}) == 3:
+        try:
+            account = LoggInBasic.objects.get(token=data['token']).account
+            return Response({'msg': account.name}, status.HTTP_200_OK)
+        except LoggInBasic.DoesNotExist:
+            # serializer = AccountSerializer(data=data)
+            # if serializer.is_valid():
+            #     serializer.save()
+            #     return Response({'msg': 'You are successfully registered'}, status.HTTP_200_OK)
+            # else:
+            #     return Response({'msg': 'something wrong :('}, status.HTTP_406_NOT_ACCEPTABLE)
+            return Response({'msg': account.name}, status.HTTP_200_OK)
+    content = {'msg': 'Not valid Data'}
+    # return(Response(content, status.HTTP_406_NOT_ACCEPTABLE))
+    return Response({'msg': 'ridim'}, status.HTTP_200_OK)

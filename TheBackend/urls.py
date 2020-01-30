@@ -8,4 +8,5 @@ from . import views
 
 urlpatterns = [
     path('api/account/', include('apps.account.urls')),
+    path('api/post', include('apps.post.urls'))
 ]
