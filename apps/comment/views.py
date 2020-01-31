@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from apps.account.models import AccountBasic 
 from .models import Comment
 from .serilizer import CommentSerializer
-from _datetime import datetime
+from django.utils.timezone import now
 
 @csrf_exempt
 @api_view(['GET'])
@@ -66,13 +66,17 @@ def edit_comment(request):
     #check if post is valid
     if type(ans) == Response:
         return ans
-    if not comment_exists(data['id']):
-        return responseGenerator('Comment does not exist' , 406)
+    serializer = ans
+    try:
+        if not comment_exists(data['id']):
+            return responseGenerator('Comment does not exist' , 406)
+    except KeyError:
+        return responseGenerator('Invalid Input' , 406)
     instance =  Comment.objects.get(id = data['id'])
     validated_data = ans.validated_data
     instance.comment = validated_data.get('comment' , instance.comment)
-    instance.edited_time = datetime.now().time()
-    instance.edited_date = datetime.now()
+    instance.edited_time = now().time()
+    instance.edited_date = now()
     
     instance.image_name = validated_data.get('image_name', instance.image_name)
     instance.save()

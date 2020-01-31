@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'apps.account',
     'apps.comment',
+    'apps.comment.like',
 ]
 
 # REST_FRAMEWORK = {

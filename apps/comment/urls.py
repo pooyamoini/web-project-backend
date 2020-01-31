@@ -7,5 +7,6 @@ urlpatterns = [
     path('comment' , views.comment),
     path('delete' , views.delete_comment),
     path('edit' , views.edit_comment),
-    path('get_comments' , views.get_all_comments),    
+    path('get_comments' , views.get_all_comments),  
+    path('like/', include('apps.comment.like.urls')),  
 ]

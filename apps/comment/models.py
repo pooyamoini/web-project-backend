@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 from django.db import models
-from datetime import datetime
+from django.utils.timezone import now
 
 class Comment(models.Model):
-    id = models.BigAutoField(primary_key = True)
+    id = models.BigAutoField(primary_key = True , null = False)
     post_id = models.BigIntegerField(null= False)
     comment = models.CharField(max_length = 300 , null = False , default = "")
-    creator_id = models.CharField(max_length = 300 , null = False , default = "")
-    creation_date = models.DateField(default = datetime.now() , editable = False)
-    creation_time = models.TimeField(default = datetime.now().time() , editable = False)
+    creator_id = models.CharField(max_length = 300 , null = False )
+    creation_date = models.DateField(default = now() , editable = False)
+    creation_time = models.TimeField(default = now().time() , editable = False)
     edited_time = models.TimeField(null = True)
     edited_date = models.DateField(null = True)
     comment_replied_to_id = models.BigIntegerField(null= True)
