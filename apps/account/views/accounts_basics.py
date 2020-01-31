@@ -84,3 +84,20 @@ def del_profile(request):
 
     content = {'msg': 'Not valid Data'}
     return(Response(content, status.HTTP_406_NOT_ACCEPTABLE))
+
+
+@csrf_exempt
+@api_view(['POST'])
+def change_profile(request):
+    data = request.data
+    if len(data.keys() & {'token', 'profile'}) >= 2:
+        try:
+            token = data['token']
+            profile_path = data['profile']
+            account = LoggInBasic.objects.get(token=token).account
+            account.profile = profile_path
+            account.save()
+            return Response({'msg': 'successfull'}, status.HTTP_200_OK)
+        except LoggInBasic.DoesNotExist:
+            return Response({'msg': 'invalid token'}, status.HTTP_406_NOT_ACCEPTABLE)
+    return Response({'msg': 'invalid data'}, status.HTTP_406_NOT_ACCEPTABLE)

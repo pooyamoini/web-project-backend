@@ -47,9 +47,8 @@ def token_isvalid(request):
             if (datetime.datetime.now(datetime.timezone.utc) - query_res.token_gen_time).seconds >= 3600 * 3:
                 return Response({'msg': 'invalid token'}, status.HTTP_406_NOT_ACCEPTABLE)
             account = query_res.account
-            data = {'name': account.name, 'username': account.username,
-                    'password': account.password, 'email': account.email}
-            return Response({'msg': 'valid token', 'account': data}, status.HTTP_200_OK)
+            account_serializer = AccountSerializer(account)
+            return Response({'msg': 'valid token', 'account': account_serializer.data}, status.HTTP_200_OK)
         except LoggInBasic.DoesNotExist:
             return Response({'msg': 'invalid token'}, status.HTTP_406_NOT_ACCEPTABLE)
 

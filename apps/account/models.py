@@ -10,6 +10,11 @@ class AccountBasic(models.Model):
     name = models.CharField(max_length=40, null=False, default="")
     email = models.CharField(max_length=50, null=False, default="")
     password = models.CharField(max_length=200, null=False, default="")
+    profile = models.ImageField(upload_to='statics/profiles', default="")
+    gender = models.CharField(max_length=20, default="")
+    bio = models.CharField(max_length=500, default="")
+    phone_number = models.BigIntegerField(default=0)
+    country = models.CharField(max_length=20, default="")
 
     def __str__(self):
         return(self.name)
