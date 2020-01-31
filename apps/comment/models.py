@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 from django.db import models
+<<<<<<< Updated upstream
 from django.utils.timezone import now
 
 class Comment(models.Model):
@@ -16,6 +17,19 @@ class Comment(models.Model):
     image_name = models.CharField(max_length = 60 , null = True)
     like_counter = models.IntegerField(null = False , default= 0)
     dislike_counter = models.IntegerField(null= False , default= 0)
+=======
+from datetime import datetime
+
+class Comment(models.Model):
+    id = models.BigAutoField(primary_key = True)
+    post_id = models.BigIntegerField(null= False)
+    comment_creator_id = models.CharField(max_length=40, null=False, default="")
+    reply_to_comment_id = models.BigIntegerField(null= True)
+    creation_time = models.TimeField(default = datetime.now())
+    image_name = models.CharField(max_length = 60 , null = True)
+    Comment_body = models.CharField(max_length = 300 , null = False , default = "")
+    
+>>>>>>> Stashed changes
 
 
     def __str__(self):
