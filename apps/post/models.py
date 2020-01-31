@@ -11,7 +11,7 @@ class Post(models.Model):
     ndislikes = models.IntegerField(default=0)
     content = models.CharField(max_length=50000)
     id_post = models.IntegerField(primary_key=True)
-    image = models.ImageField(upload_to='statics/images')
+    image = models.CharField(max_length=100, default="")
     date_post = models.DateTimeField(auto_now=True)
     account = models.ForeignKey(
         AccountBasic, on_delete=models.CASCADE, default=None)
