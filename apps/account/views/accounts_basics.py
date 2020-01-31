@@ -45,18 +45,27 @@ def signup(request):
 @api_view(['PUT'])
 def edit(request):
     data = request.data
-    if len(data.keys() & {'email', 'name', 'username', 'password'}) == 4:
+    if len(data.keys() & {'email', 'name', 'username', 'password', 'token'}) >= 4:
         try:
-            account = AccountBasic.objects.get(pk=data['username'])
-            serializer = AccountSerializer(account, data=data)
-            if serializer.is_valid():
-                if (account.password == data["password"]):
-                    serializer.save()
-                    return Response({'msg': 'successfull'}, status.HTTP_200_OK)
-                return Response({'msg': 'wrong password'}, status.HTTP_406_NOT_ACCEPTABLE)
-            else:
-                return Response({'msg': 'something wrong'}, status.HTTP_406_NOT_ACCEPTABLE)
-        except AccountBasic.DoesNotExist:
+            account = LoggInBasic.objects.get(token=data['token']).account
+            for (key, value) in data.items():
+                if (value == '' or value == None or key == 'username'):
+                    continue
+                try:
+                    temp = getattr(account, key)
+                    setattr(account, key, value)
+                except AttributeError:
+                    if key == 'newPassword':
+                        if data['newPassword'] == data['confirmNewPassword']:
+                            if data['password'] == account.password:
+                                account.password = data['newPassword']
+                                continue
+                            return Response({'msg': 'wrong password'}, status.HTTP_406_NOT_ACCEPTABLE)
+                        return Response({'msg': 'passwords doesnt match'}, status.HTTP_406_NOT_ACCEPTABLE)
+                    continue
+            account.save()
+            return Response({'msg': 'successfull'}, status.HTTP_200_OK)
+        except LoggInBasic.DoesNotExist:
             return Response({'msg': 'username does not exist'}, status.HTTP_406_NOT_ACCEPTABLE)
 
     content = {'msg': 'Not valid Data'}
