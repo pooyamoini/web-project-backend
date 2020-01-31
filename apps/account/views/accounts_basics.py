@@ -45,6 +45,9 @@ def signup(request):
 @api_view(['PUT'])
 def edit(request):
     data = request.data
+    print('--'*70)
+    print(data)
+    print('--'*70)
     if len(data.keys() & {'email', 'name', 'username', 'password', 'token'}) >= 4:
         try:
             account = LoggInBasic.objects.get(token=data['token']).account
