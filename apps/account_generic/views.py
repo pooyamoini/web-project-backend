@@ -9,12 +9,13 @@ import string
 import random
 import datetime
 from .models import AccountGeneric
+from .serializers import AccountGenericSerializer
 from ..account.models import LoggInBasic, AccountBasic
 
 
 @csrf_exempt
 @api_view(['POST'])
-def test(request, username):
+def get_profile(request, username):
     data = request.data
     if len(data.keys() & {'token'}) >= 1:
         token = request.data['token']

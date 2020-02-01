@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from django.contrib.auth.hashers import make_password
 from .models import Post
 from ..account.models import LoggInBasic
+from ..account_generic.models import AccountGeneric
 from .serializers import PostSerializer
 import string
 import random
@@ -26,7 +27,10 @@ def create_post(request):
             image = data['image']
             post = Post(account=account, id_post=id_post,
                         date_post=time_now, content=content, image=image)
+            account_gen = AccountGeneric.objects.get(pk=account)
             post.save()
+            account_gen.posts.add(post)
+            account_gen.save()
             return Response({'msg': 'post successfully created'}, status.HTTP_200_OK)
         except LoggInBasic.DoesNotExist:
             return Response({'msg': 'invalid token'}, HTTP_406_NOT_ACCEPTABLE)

@@ -8,6 +8,7 @@ from django.contrib.auth.hashers import make_password
 from .models import AccountBasic, LoggInBasic
 from .serializers import AccountSerializer, LogginSerializer
 from ..account_generic.models import AccountGeneric
+from ..account_generic.serializers import AccountGenericSerializer
 import string
 import random
 import datetime
@@ -158,3 +159,26 @@ def token_isvalid(request):
 
     content = {'msg': 'Not valid Data'}
     return(Response(content, status.HTTP_406_NOT_ACCEPTABLE))
+
+
+@csrf_exempt
+@api_view(['POST'])
+def generate_suggestions(request):
+    data = request.data
+    if len(data.keys() & {'token'}) >= 1:
+        token = request.data['token']
+        try:
+            my_account = LoggInBasic.objects.get(token=token).account
+            suggestions = []
+            for ac in range(min(10, len(AccountGeneric.objects.all()))):
+                acc = AccountBasic.objects.all()[ac]
+                if acc.username == my_account.username:
+                    continue
+                suggestions.append(acc)
+            data = AccountSerializer(suggestions, many=True)
+            return Response({'msg': data.data}, status.HTTP_200_OK)
+        except LoggInBasic.DoesNotExist:
+            return Response({'msg': 'invalid token'}, status.HTTP_406_NOT_ACCEPTABLE)
+        except AccountBasic.DoesNotExist:
+            return Response({'msg': 'invalid username o kire khar'}, status.HTTP_406_NOT_ACCEPTABLE)
+    return Response({'msg': 'invalid data'}, status.HTTP_406_NOT_ACCEPTABLE)
