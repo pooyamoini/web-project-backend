@@ -11,6 +11,7 @@ import datetime
 from .models import AccountGeneric
 from .serializers import AccountGenericSerializer
 from ..account.models import LoggInBasic, AccountBasic
+from ..account.serializers import AccountSerializer
 
 
 @csrf_exempt
@@ -47,7 +48,7 @@ def follow(request):
             account = AccountBasic.objects.get(pk=username)
             account_generic = AccountGeneric.objects.get(pk=account)
             my_account_generic = AccountGeneric.objects.get(pk=my_account)
-            if (account_generic.followers.filter(name=my_account.name).exists()):
+            if (account_generic.followers.filter(username=my_account.username).exists()):
                 account_generic.followers.remove(my_account)
                 my_account_generic.followings.remove(account)
                 account_generic.save()
@@ -58,6 +59,29 @@ def follow(request):
             account_generic.save()
             my_account_generic.save()
             return Response({'msg': 'successfully added'}, status.HTTP_200_OK)
+        except LoggInBasic.DoesNotExist:
+            return Response({'msg': 'invalid token'}, status.HTTP_406_NOT_ACCEPTABLE)
+        except AccountBasic.DoesNotExist:
+            return Response({'msg': 'invalid username'}, status.HTTP_406_NOT_ACCEPTABLE)
+    return Response({'msg': 'invalid data'}, status.HTTP_406_NOT_ACCEPTABLE)
+
+
+@csrf_exempt
+@api_view(['POST'])
+def get_followers_followings(request):
+    data = request.data
+    if len(data.keys() & {'token', 'username'}) >= 2:
+        token = request.data['token']
+        try:
+            username = data['username']
+            my_account = LoggInBasic.objects.get(token=token).account
+            account = AccountBasic.objects.get(pk=username)
+            account_generic = AccountGeneric.objects.get(pk=account)
+            my_account_generic = AccountGeneric.objects.get(pk=my_account)
+            followers = AccountSerializer(account_generic.followers, many=True)
+            followings = AccountSerializer(
+                account_generic.followings, many=True)
+            return Response({'msg': {'followers': followers.data, 'followings': followings.data}}, status.HTTP_200_OK)
         except LoggInBasic.DoesNotExist:
             return Response({'msg': 'invalid token'}, status.HTTP_406_NOT_ACCEPTABLE)
         except AccountBasic.DoesNotExist:

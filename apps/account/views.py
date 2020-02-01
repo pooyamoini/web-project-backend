@@ -174,6 +174,9 @@ def generate_suggestions(request):
                 acc = AccountBasic.objects.all()[ac]
                 if acc.username == my_account.username:
                     continue
+                genacc = AccountGeneric.objects.get(account=acc)
+                if genacc.followers.filter(username=my_account.username).exists():
+                    continue
                 suggestions.append(acc)
             data = AccountSerializer(suggestions, many=True)
             return Response({'msg': data.data}, status.HTTP_200_OK)
