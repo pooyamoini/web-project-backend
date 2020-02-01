@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'apps.post',
     'apps.account_generic',
     'apps.follow',
+    'apps.comment',
+    'apps.comment.like',
 ]
 
 # REST_FRAMEWORK = {

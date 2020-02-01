@@ -6,7 +6,8 @@ from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 from django.contrib.auth.hashers import make_password
 from .models import Post
-from ..account.models import LoggInBasic
+from ..account.models import LoggInBasic, AccountBasic
+from ..account.serializers import AccountSerializer
 from ..account_generic.models import AccountGeneric
 from .serializers import PostSerializer
 import string
@@ -18,7 +19,7 @@ import datetime
 @api_view(['POST'])
 def create_post(request):
     data = request.data
-    if len(data.keys() & {'content', 'image', 'token'}) == 3:
+    if len(data.keys() & {'content', 'image', 'token'}) >= 3:
         try:
             account = LoggInBasic.objects.get(token=data['token']).account
             id_post = len(Post.objects.all())
@@ -33,6 +34,26 @@ def create_post(request):
             account_gen.save()
             return Response({'msg': 'post successfully created'}, status.HTTP_200_OK)
         except LoggInBasic.DoesNotExist:
-            return Response({'msg': 'invalid token'}, HTTP_406_NOT_ACCEPTABLE)
+            return Response({'msg': 'invalid token'}, status.HTTP_406_NOT_ACCEPTABLE)
+    content = {'msg': 'Not valid Data'}
+    return Response({'msg': content}, status.HTTP_406_NOT_ACCEPTABLE)
+
+
+@csrf_exempt
+@api_view(['POST'])
+def get_post(request, post_id):
+    data = request.data
+    if len(data.keys() & {'token'}) >= 1:
+        try:
+            my_account = LoggInBasic.objects.get(token=data['token']).account
+            post = Post.objects.get(pk=post_id)
+            post_serializer = PostSerializer(post)
+            account = post.account
+            account_serializer = AccountSerializer(account)
+            return Response({'msg': {'post': post_serializer.data, 'account': account_serializer.data}}, status.HTTP_200_OK)
+        except LoggInBasic.DoesNotExist:
+            return Response({'msg': 'invalid token'}, status.HTTP_406_NOT_ACCEPTABLE)
+        except Post.DoesNotExist:
+            return Response({'msg': 'invalid pid'}, status.HTTP_406_NOT_ACCEPTABLE)
     content = {'msg': 'Not valid Data'}
     return Response({'msg': content}, status.HTTP_406_NOT_ACCEPTABLE)
