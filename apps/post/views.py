@@ -50,7 +50,39 @@ def get_post(request, post_id):
             post_serializer = PostSerializer(post)
             account = post.account
             account_serializer = AccountSerializer(account)
-            return Response({'msg': {'post': post_serializer.data, 'account': account_serializer.data}}, status.HTTP_200_OK)
+            is_liked = post.nlikes.filter(
+                username=my_account.username).exists()
+            is_disliked = post.ndislikes.filter(
+                username=my_account.username).exists()
+            return Response({'msg': {'post': post_serializer.data, 'account': account_serializer.data, 'isliked': is_liked, 'isDisliked': is_disliked}}, status.HTTP_200_OK)
+        except LoggInBasic.DoesNotExist:
+            return Response({'msg': 'invalid token'}, status.HTTP_406_NOT_ACCEPTABLE)
+        except Post.DoesNotExist:
+            return Response({'msg': 'invalid pid'}, status.HTTP_406_NOT_ACCEPTABLE)
+    content = {'msg': 'Not valid Data'}
+    return Response({'msg': content}, status.HTTP_406_NOT_ACCEPTABLE)
+
+
+@csrf_exempt
+@api_view(['POST'])
+def like_dislike(request):
+    data = request.data
+    if len(data.keys() & {'token', 'type', 'post_id'}) >= 1:
+        try:
+            my_account = LoggInBasic.objects.get(token=data['token']).account
+            post = Post.objects.get(pk=data['post_id'])
+            if data['type'] == 'like':
+                if post.nlikes.filter(username=my_account.username).exists():
+                    post.nlikes.remove(my_account)
+                else:
+                    post.nlikes.add(my_account)
+            else:
+                if post.ndislikes.filter(username=my_account.username):
+                    post.ndislikes.remove(my_account)
+                else:
+                    post.ndislikes.add(my_account)
+            post.save()
+            return Response({'msg': 'successfull'}, status.HTTP_200_OK)
         except LoggInBasic.DoesNotExist:
             return Response({'msg': 'invalid token'}, status.HTTP_406_NOT_ACCEPTABLE)
         except Post.DoesNotExist:

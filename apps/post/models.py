@@ -7,8 +7,9 @@ from ..account.models import AccountBasic
 
 class Post(models.Model):
     # comments
-    nlikes = models.IntegerField(default=0)
-    ndislikes = models.IntegerField(default=0)
+    nlikes = models.ManyToManyField(AccountBasic, related_name='nlikes')
+    ndislikes = models.ManyToManyField(
+        AccountBasic, related_name='ndislikes')
     content = models.CharField(max_length=50000)
     id_post = models.IntegerField(primary_key=True)
     image = models.CharField(max_length=100, default="")
