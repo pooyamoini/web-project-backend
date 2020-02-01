@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'apps.account',
     'apps.post',
     'apps.account_generic',
+    'apps.follow',
 ]
 
 # REST_FRAMEWORK = {
