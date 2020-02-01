@@ -1,5 +1,6 @@
 from django.conf.urls import url
 from django.contrib import admin
+from django.urls import include, path
 
 from . import views
 
@@ -9,5 +10,7 @@ urlpatterns = [
     url('editprofile', views.edit, name='edit-profile'),
     url('delprofile', views.del_profile, name='delete-profile'),
     url('login', views.login, name='login'),
-    url('validate_token', views.token_isvalid, name='validate_token')
+    url('validate_token', views.token_isvalid, name='validate_token'),
+    url('change_profile', views.change_profile, name='change_profile'),
+    url('suggestions', views.generate_suggestions, name='gen_suggestions')
 ]
