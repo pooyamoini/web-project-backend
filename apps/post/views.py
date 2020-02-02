@@ -129,9 +129,42 @@ def get_homepage(request):
     return Response({'msg': content}, status.HTTP_406_NOT_ACCEPTABLE)
 
 
+@csrf_exempt
+@api_view(['POST'])
+def get_homepage_news(request):
+    data = request.data
+    if len(data.keys() & {'token'}) >= 1:
+        try:
+            my_account = LoggInBasic.objects.get(token=data['token']).account
+            followings = AccountGeneric.objects.get(pk=my_account).followings
+            followings_serializer = AccountSerializer(followings, many=True)
+            posts = []
+            accounts = []
+            for a in followings.all():
+                gen_a = AccountGeneric.objects.get(account=a)
+                for i in gen_a.posts.all():
+                    date = get_correct_time(time=i.date_post)
+                    posts.append({'title': i.account.username, 'content': i.content,
+                                  'image': i.image, 'date': date, 'name': a.name, 'username': a.username, 'profile': a.profile,
+                                  'id': i.id_post, 'likes': len(i.nlikes.all()), 'dislikes': len(i.ndislikes.all())})
+            for i in AccountGeneric.objects.get(account=my_account).posts.all():
+                date = get_correct_time(time=i.date_post)
+                posts.append({'title': my_account.username, 'content': i.content,
+                              'image': i.image, 'date': date, 'name': my_account.name, 'username': my_account.username, 'profile': my_account.profile,
+                              'id': i.id_post, 'likes': len(i.nlikes.all()), 'dislikes': len(i.ndislikes.all())})
+            return Response({'msg': {'posts': posts}}, status.HTTP_200_OK)
+        except LoggInBasic.DoesNotExist:
+            return Response({'msg': 'invalid token'}, status.HTTP_406_NOT_ACCEPTABLE)
+    content = {'msg': 'Not valid Data'}
+    return Response({'msg': content}, status.HTTP_406_NOT_ACCEPTABLE)
+
+
+def return_delta_time(time):
+    return (datetime.datetime.now(datetime.timezone.utc) - time).seconds
+
+
 def get_correct_time(time):
-    dseconds = (datetime.datetime.now(
-        datetime.timezone.utc) - time).seconds
+    dseconds = return_delta_time(time)
     date = 'Just know'
     if dseconds > 60 and dseconds <= 3600:
         date = str(math.floor(dseconds/60)) + ' mins ago'
