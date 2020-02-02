@@ -113,18 +113,28 @@ def get_homepage(request):
             for a in followings.all():
                 gen_a = AccountGeneric.objects.get(account=a)
                 for i in gen_a.posts.all():
-                    dseconds = (datetime.datetime.now(
-                        datetime.timezone.utc) - i.date_post).seconds
-                    date = 'Just know'
-                    if dseconds > 60 and dseconds <= 3600:
-                        date = str(math.floor(dseconds/60)) + ' mins ago'
-                    elif dseconds > 3600:
-                        date = str(math.floor(dseconds / 3600)) + ' hours age'
+                    date = get_correct_time(time=i.date_post)
                     posts.append({'title': i.account.username, 'content': i.content,
                                   'image': i.image, 'date': date, 'name': a.name, 'username': a.username, 'profile': a.profile,
                                   'id': i.id_post, 'likes': len(i.nlikes.all()), 'dislikes': len(i.ndislikes.all())})
+            for i in AccountGeneric.objects.get(account=my_account).posts.all():
+                date = get_correct_time(time=i.date_post)
+                posts.append({'title': my_account.username, 'content': i.content,
+                              'image': i.image, 'date': date, 'name': my_account.name, 'username': my_account.username, 'profile': my_account.profile,
+                              'id': i.id_post, 'likes': len(i.nlikes.all()), 'dislikes': len(i.ndislikes.all())})
             return Response({'msg': {'posts': posts}}, status.HTTP_200_OK)
         except LoggInBasic.DoesNotExist:
             return Response({'msg': 'invalid token'}, status.HTTP_406_NOT_ACCEPTABLE)
     content = {'msg': 'Not valid Data'}
     return Response({'msg': content}, status.HTTP_406_NOT_ACCEPTABLE)
+
+
+def get_correct_time(time):
+    dseconds = (datetime.datetime.now(
+        datetime.timezone.utc) - time).seconds
+    date = 'Just know'
+    if dseconds > 60 and dseconds <= 3600:
+        date = str(math.floor(dseconds/60)) + ' mins ago'
+    elif dseconds > 3600:
+        date = str(math.floor(dseconds / 3600)) + ' hours age'
+    return(date)
