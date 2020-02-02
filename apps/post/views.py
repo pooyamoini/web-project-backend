@@ -116,13 +116,13 @@ def get_homepage(request):
                     date = get_correct_time(time=i.date_post)
                     posts.append({'title': i.account.username, 'content': i.content,
                                   'image': i.image, 'date': date, 'name': a.name, 'username': a.username, 'profile': a.profile,
-                                  'id': i.id_post, 'likes': len(i.nlikes.all()), 'dislikes': len(i.ndislikes.all())})
+                                  'id': i.id_post, 'likes': len(i.nlikes.all()), 'dislikes': len(i.ndislikes.all()), 'realtime': return_delta_time(i.date_post)})
             for i in AccountGeneric.objects.get(account=my_account).posts.all():
                 date = get_correct_time(time=i.date_post)
                 posts.append({'title': my_account.username, 'content': i.content,
                               'image': i.image, 'date': date, 'name': my_account.name, 'username': my_account.username, 'profile': my_account.profile,
-                              'id': i.id_post, 'likes': len(i.nlikes.all()), 'dislikes': len(i.ndislikes.all())})
-            return Response({'msg': {'posts': posts}}, status.HTTP_200_OK)
+                              'id': i.id_post, 'likes': len(i.nlikes.all()), 'dislikes': len(i.ndislikes.all()), 'realtime': return_delta_time(i.date_post)})
+            return Response({'msg': {'posts': get_sorted_posts(posts)}}, status.HTTP_200_OK)
         except LoggInBasic.DoesNotExist:
             return Response({'msg': 'invalid token'}, status.HTTP_406_NOT_ACCEPTABLE)
     content = {'msg': 'Not valid Data'}
@@ -132,6 +132,9 @@ def get_homepage(request):
 @csrf_exempt
 @api_view(['POST'])
 def get_homepage_news(request):
+    """
+        return posts order by date_post, limit: date_post <= 2hours ago
+    """
     data = request.data
     if len(data.keys() & {'token'}) >= 1:
         try:
@@ -146,17 +149,30 @@ def get_homepage_news(request):
                     date = get_correct_time(time=i.date_post)
                     posts.append({'title': i.account.username, 'content': i.content,
                                   'image': i.image, 'date': date, 'name': a.name, 'username': a.username, 'profile': a.profile,
-                                  'id': i.id_post, 'likes': len(i.nlikes.all()), 'dislikes': len(i.ndislikes.all())})
+                                  'id': i.id_post, 'likes': len(i.nlikes.all()), 'dislikes': len(i.ndislikes.all()), 'realtime': return_delta_time(i.date_post)})
             for i in AccountGeneric.objects.get(account=my_account).posts.all():
                 date = get_correct_time(time=i.date_post)
                 posts.append({'title': my_account.username, 'content': i.content,
                               'image': i.image, 'date': date, 'name': my_account.name, 'username': my_account.username, 'profile': my_account.profile,
-                              'id': i.id_post, 'likes': len(i.nlikes.all()), 'dislikes': len(i.ndislikes.all())})
-            return Response({'msg': {'posts': posts}}, status.HTTP_200_OK)
+                              'id': i.id_post, 'likes': len(i.nlikes.all()), 'dislikes': len(i.ndislikes.all()), 'realtime': return_delta_time(i.date_post)})
+            return Response({'msg': {'posts': get_new_posts(posts)}}, status.HTTP_200_OK)
         except LoggInBasic.DoesNotExist:
             return Response({'msg': 'invalid token'}, status.HTTP_406_NOT_ACCEPTABLE)
     content = {'msg': 'Not valid Data'}
     return Response({'msg': content}, status.HTTP_406_NOT_ACCEPTABLE)
+
+
+def get_new_posts(posts):
+    to_return = []
+    for i in posts:
+        if i['realtime'] >= 2 * 3600:
+            continue
+        to_return.append(i)
+    return sorted(to_return, key=lambda k: k['realtime'])
+
+
+def get_sorted_posts(posts):
+    return sorted(posts, key=lambda k: k['realtime'])
 
 
 def return_delta_time(time):
