@@ -13,6 +13,7 @@ from .serializers import PostSerializer
 import string
 import random
 import datetime
+import math
 
 
 @csrf_exempt
@@ -54,7 +55,14 @@ def get_post(request, post_id):
                 username=my_account.username).exists()
             is_disliked = post.ndislikes.filter(
                 username=my_account.username).exists()
-            return Response({'msg': {'post': post_serializer.data, 'account': account_serializer.data, 'isliked': is_liked, 'isDisliked': is_disliked}}, status.HTTP_200_OK)
+            dseconds = (datetime.datetime.now(
+                datetime.timezone.utc) - post.date_post).seconds
+            date = 'Just know'
+            if dseconds > 60 and dseconds <= 3600:
+                date = str(math.floor(dseconds/60)) + ' mins ago'
+            elif dseconds > 3600:
+                date = str(math.floor(dseconds / 3600)) + ' hours age'
+            return Response({'msg': {'post': post_serializer.data, 'account': account_serializer.data, 'isliked': is_liked, 'isDisliked': is_disliked, 'date': date}}, status.HTTP_200_OK)
         except LoggInBasic.DoesNotExist:
             return Response({'msg': 'invalid token'}, status.HTTP_406_NOT_ACCEPTABLE)
         except Post.DoesNotExist:
@@ -87,5 +95,36 @@ def like_dislike(request):
             return Response({'msg': 'invalid token'}, status.HTTP_406_NOT_ACCEPTABLE)
         except Post.DoesNotExist:
             return Response({'msg': 'invalid pid'}, status.HTTP_406_NOT_ACCEPTABLE)
+    content = {'msg': 'Not valid Data'}
+    return Response({'msg': content}, status.HTTP_406_NOT_ACCEPTABLE)
+
+
+@csrf_exempt
+@api_view(['POST'])
+def get_homepage(request):
+    data = request.data
+    if len(data.keys() & {'token'}) >= 1:
+        try:
+            my_account = LoggInBasic.objects.get(token=data['token']).account
+            followings = AccountGeneric.objects.get(pk=my_account).followings
+            followings_serializer = AccountSerializer(followings, many=True)
+            posts = []
+            accounts = []
+            for a in followings.all():
+                gen_a = AccountGeneric.objects.get(account=a)
+                for i in gen_a.posts.all():
+                    dseconds = (datetime.datetime.now(
+                        datetime.timezone.utc) - i.date_post).seconds
+                    date = 'Just know'
+                    if dseconds > 60 and dseconds <= 3600:
+                        date = str(math.floor(dseconds/60)) + ' mins ago'
+                    elif dseconds > 3600:
+                        date = str(math.floor(dseconds / 3600)) + ' hours age'
+                    posts.append({'title': i.account.username, 'content': i.content,
+                                  'image': i.image, 'date': date, 'name': a.name, 'username': a.username, 'profile': a.profile,
+                                  'id': i.id_post, 'likes': len(i.nlikes.all()), 'dislikes': len(i.ndislikes.all())})
+            return Response({'msg': {'posts': posts}}, status.HTTP_200_OK)
+        except LoggInBasic.DoesNotExist:
+            return Response({'msg': 'invalid token'}, status.HTTP_406_NOT_ACCEPTABLE)
     content = {'msg': 'Not valid Data'}
     return Response({'msg': content}, status.HTTP_406_NOT_ACCEPTABLE)
