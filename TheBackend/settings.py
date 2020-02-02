@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'apps.comment.like',
 ]
 
+
 # REST_FRAMEWORK = {
 #     'DEFAULT_PERMISSION_CLASSES': (
 #         'rest_framework.permissions.IsAuthenticated',
