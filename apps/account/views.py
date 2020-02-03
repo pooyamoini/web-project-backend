@@ -9,6 +9,7 @@ from .models import AccountBasic, LoggInBasic
 from .serializers import AccountSerializer, LogginSerializer
 from ..account_generic.models import AccountGeneric
 from ..account_generic.serializers import AccountGenericSerializer
+from django.core.mail import send_mail
 import string
 import random
 import datetime
@@ -184,4 +185,25 @@ def generate_suggestions(request):
             return Response({'msg': 'invalid token'}, status.HTTP_406_NOT_ACCEPTABLE)
         except AccountBasic.DoesNotExist:
             return Response({'msg': 'invalid username o kire khar'}, status.HTTP_406_NOT_ACCEPTABLE)
+    return Response({'msg': 'invalid data'}, status.HTTP_406_NOT_ACCEPTABLE)
+
+@csrf_exempt
+@api_view(['POST'])
+def forget_password(request):
+    data = request.data
+    if len(data.keys() & {'email'}) >= 1:
+        try:
+            account = AccountBasic.objects.get(email=data['email'])
+            new_password = random.randrange(111111, 999999)
+            account.password = str(new_password)
+            account.save()
+            send_mail('Reset Password',
+            'Your Password : ' + str(new_password),
+            'webproject.fall.2019@gmail.com',
+            [data['email']],
+            fail_silently=False
+            )
+            return Response({'msg': 'succesfull'}, status.HTTP_200_OK)
+        except AccountBasic.DoesNotExist:
+            return Response({'msg': 'invalid email'}, status.HTTP_406_NOT_ACCEPTABLE)
     return Response({'msg': 'invalid data'}, status.HTTP_406_NOT_ACCEPTABLE)
