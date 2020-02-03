@@ -9,11 +9,18 @@ from .models import Post
 from ..account.models import LoggInBasic, AccountBasic
 from ..account.serializers import AccountSerializer
 from ..account_generic.models import AccountGeneric
+from ..Numbers.models import Number
 from .serializers import PostSerializer
 import string
 import random
 import datetime
 import math
+
+
+def add_number():
+    n = Number.objects.all()[0]
+    n.value += 1
+    n.save()
 
 
 @csrf_exempt
@@ -23,7 +30,11 @@ def create_post(request):
     if len(data.keys() & {'content', 'image', 'token'}) >= 3:
         try:
             account = LoggInBasic.objects.get(token=data['token']).account
-            id_post = len(Post.objects.all())
+            if len(Number.objects.all()) == 0:
+                n = Number(name=1, value=0)
+                n.save()
+            id_post = Number.objects.all()[0].value
+            add_number()
             time_now = datetime.datetime.now()
             content = data['content']
             image = data['image']
@@ -80,6 +91,7 @@ def like_dislike(request):
         try:
             my_account = LoggInBasic.objects.get(token=data['token']).account
             post = Post.objects.get(pk=data['post_id'])
+            date = post.date_post
             if data['type'] == 'like':
                 if post.nlikes.filter(username=my_account.username).exists():
                     post.nlikes.remove(my_account)
@@ -90,6 +102,7 @@ def like_dislike(request):
                     post.ndislikes.remove(my_account)
                 else:
                     post.ndislikes.add(my_account)
+            post.date_post = date
             post.save()
             return Response({'msg': 'successfull'}, status.HTTP_200_OK)
         except LoggInBasic.DoesNotExist:
@@ -134,9 +147,6 @@ def get_homepage(request):
 @csrf_exempt
 @api_view(['POST'])
 def get_homepage_news(request):
-    """
-        return posts order by date_post, limit: date_post <= 2hours ago
-    """
     data = request.data
     if len(data.keys() & {'token'}) >= 1:
         try:
@@ -168,9 +178,6 @@ def get_homepage_news(request):
 @csrf_exempt
 @api_view(['POST'])
 def get_homepag_hots(request):
-    """
-        return posts order by nlikes + ndislikes + ncomments
-    """
     data = request.data
     if len(data.keys() & {'token'}) >= 1:
         try:
@@ -277,7 +284,9 @@ def edit_post(request):
         try:
             account = LoggInBasic.objects.get(token=data['token']).account
             post = Post.objects.get(pk=data['pid'])
+            date = post.date_post
             post.content = data['content']
+            post.date_post = date
             post.save()
             return Response({'msg': 'post successfully edited'}, status.HTTP_200_OK)
         except LoggInBasic.DoesNotExist:
@@ -286,16 +295,16 @@ def edit_post(request):
     return Response({'msg': content}, status.HTTP_406_NOT_ACCEPTABLE)
 
 
-@api_view(['DELETE'])
+@api_view(['POST'])
 def delete_post(request):
     data = request.data
     if len(data.keys() & {'token', 'pid'}) >= 2:
         try:
             account = LoggInBasic.objects.get(token=data['token']).account
             post = Post.objects.get(pk=data['pid'])
+            date = post.date_post
             if post.account.username == account.username:
-                temp = Post(account=None)
-                temp.save()
+                add_number()
                 post.delete()
                 return Response({'msg': 'post successfully deleted'}, status.HTTP_200_OK)
             return Response({'msg': 'not your post'}, status.HTTP_406_NOT_ACCEPTABLE)

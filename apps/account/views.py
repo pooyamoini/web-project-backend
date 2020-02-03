@@ -199,7 +199,7 @@ def forget_password(request):
             account.password = str(new_password)
             account.save()
             send_mail('Reset Password',
-                      'Your Password : ' + str(new_password),
+                      'Your Password :   ' + str(new_password),
                       'webproject.fall.2019@gmail.com',
                       [data['email']],
                       fail_silently=False

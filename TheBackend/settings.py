@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     'apps.account_generic',
     'apps.follow',
     'apps.comment',
-    'apps.comment.like',
+    'apps.Numbers'
 ]
 
 
