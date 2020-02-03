@@ -266,3 +266,20 @@ def get_correct_time(time):
     elif dseconds > 3600:
         date = str(math.floor(dseconds / 3600)) + ' hours age'
     return(date)
+
+
+@csrf_exempt
+@api_view(['POST'])
+def edit_post(request):
+    data = request.data
+    if len(data.keys() & {'content', 'pid', 'token'}) >= 3:
+        try:
+            account = LoggInBasic.objects.get(token=data['token']).account
+            post = Post.objects.get(pk=data['pid'])
+            post.content = data['content']
+            post.save()
+            return Response({'msg': 'post successfully edited'}, status.HTTP_200_OK)
+        except LoggInBasic.DoesNotExist:
+            return Response({'msg': 'invalid token'}, status.HTTP_406_NOT_ACCEPTABLE)
+    content = {'msg': 'Not valid Data'}
+    return Response({'msg': content}, status.HTTP_406_NOT_ACCEPTABLE)
