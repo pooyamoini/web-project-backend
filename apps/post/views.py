@@ -156,7 +156,8 @@ def get_homepage_news(request):
                 posts.append({'title': my_account.username, 'content': i.content,
                               'image': i.image, 'date': date, 'name': my_account.name, 'username': my_account.username, 'profile': my_account.profile,
                               'id': i.id_post, 'likes': len(i.nlikes.all()), 'dislikes': len(i.ndislikes.all()), 'realtime': return_delta_time(i.date_post)})
-            return Response({'msg': {'posts': get_new_posts(posts)}}, status.HTTP_200_OK)
+            suggests = get_suggestions(token=data['token'])
+            return Response({'msg': {'posts': get_new_posts(posts), 'header': suggests}}, status.HTTP_200_OK)
         except LoggInBasic.DoesNotExist:
             return Response({'msg': 'invalid token'}, status.HTTP_406_NOT_ACCEPTABLE)
     content = {'msg': 'Not valid Data'}
@@ -190,7 +191,8 @@ def get_homepag_hots(request):
                               'image': i.image, 'date': date, 'name': my_account.name, 'username': my_account.username, 'profile': my_account.profile,
                               'id': i.id_post, 'likes': len(i.nlikes.all()), 'dislikes': len(i.ndislikes.all()), 'realtime': return_delta_time(i.date_post)})
             posts = sorted(posts, key=lambda k: -k['likes'])
-            return Response({'msg': {'posts': posts}}, status.HTTP_200_OK)
+            suggests = get_suggestions(token=data['token'])
+            return Response({'msg': {'posts': posts, 'header': suggests}}, status.HTTP_200_OK)
         except LoggInBasic.DoesNotExist:
             return Response({'msg': 'invalid token'}, status.HTTP_406_NOT_ACCEPTABLE)
     content = {'msg': 'Not valid Data'}
@@ -224,7 +226,7 @@ def get_random_hots():
     posts = PostSerializer(Post.objects.all(), many=True).data
     if len(posts) == 0:
         return {}
-    sorted_posts = sorted(posts, key=lambda k: len(k['nlikes']))
+    sorted_posts = sorted(posts, key=lambda k: -len(k['nlikes']))
     post = sorted_posts[random.randrange(min(3, len(posts)))]
     return post
 
