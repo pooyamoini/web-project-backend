@@ -11,4 +11,5 @@ urlpatterns = [
     path('api/post/', include('apps.post.urls')),
     path('api/profile/', include('apps.account_generic.urls')),
     path('api/comment/', include('apps.comment.urls')),
+    path('api/send_email/', include('apps.send_email.urls'))
 ]
