@@ -158,8 +158,8 @@ STATIC_URL = '/static/'
 
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
-EMAIL_HOST_USER = 'alireza.am1379@gmail.com'
-EMAIL_HOST_PASSWORD = '193713852'
+EMAIL_HOST_USER = 'webproject.fall.2019@gmail.com'
+EMAIL_HOST_PASSWORD = 'webproject2019'
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
 ACCOUNT_EMAIL_VERIFICATION = 'none'
