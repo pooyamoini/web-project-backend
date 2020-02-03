@@ -62,7 +62,8 @@ def get_post(request, post_id):
                 date = str(math.floor(dseconds/60)) + ' mins ago'
             elif dseconds > 3600:
                 date = str(math.floor(dseconds / 3600)) + ' hours age'
-            return Response({'msg': {'post': post_serializer.data, 'account': account_serializer.data, 'isliked': is_liked, 'isDisliked': is_disliked, 'date': date}}, status.HTTP_200_OK)
+            return Response({'msg': {'post': post_serializer.data, 'account': account_serializer.data, 'isliked': is_liked,
+                                     'isDisliked': is_disliked, 'date': date}}, status.HTTP_200_OK)
         except LoggInBasic.DoesNotExist:
             return Response({'msg': 'invalid token'}, status.HTTP_406_NOT_ACCEPTABLE)
         except Post.DoesNotExist:
@@ -281,5 +282,26 @@ def edit_post(request):
             return Response({'msg': 'post successfully edited'}, status.HTTP_200_OK)
         except LoggInBasic.DoesNotExist:
             return Response({'msg': 'invalid token'}, status.HTTP_406_NOT_ACCEPTABLE)
+    content = {'msg': 'Not valid Data'}
+    return Response({'msg': content}, status.HTTP_406_NOT_ACCEPTABLE)
+
+
+@api_view(['DELETE'])
+def delete_post(request):
+    data = request.data
+    if len(data.keys() & {'token', 'pid'}) >= 2:
+        try:
+            account = LoggInBasic.objects.get(token=data['token']).account
+            post = Post.objects.get(pk=data['pid'])
+            if post.account.username == account.username:
+                temp = Post(account=None)
+                temp.save()
+                post.delete()
+                return Response({'msg': 'post successfully deleted'}, status.HTTP_200_OK)
+            return Response({'msg': 'not your post'}, status.HTTP_406_NOT_ACCEPTABLE)
+        except LoggInBasic.DoesNotExist:
+            return Response({'msg': 'invalid token'}, status.HTTP_406_NOT_ACCEPTABLE)
+        except Post.DoesNotExist:
+            return Response({'msg': 'invalid pid'}, status.HTTP_406_NOT_ACCEPTABLE)
     content = {'msg': 'Not valid Data'}
     return Response({'msg': content}, status.HTTP_406_NOT_ACCEPTABLE)
