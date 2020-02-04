@@ -78,3 +78,26 @@ def add_comment(request):
             return Response({'msg': 'invalid pid'}, status.HTTP_406_NOT_ACCEPTABLE)
     content = {'msg': 'Not valid Data'}
     return Response({'msg': content}, status.HTTP_406_NOT_ACCEPTABLE)
+
+
+@csrf_exempt
+@api_view(['POST'])
+def add_reply(request):
+    data = request.data
+    if len(data.keys() & {'token', 'pid', 'cid', 'content'}) >= 4:
+        try:
+            account = LoggInBasic.objects.get(token=data['token']).account
+            post = Post.objects.get(id_post=data['pid'])
+            q = Comment.objects.get(pk=data['pid'])
+            r = RowComment(
+                account=account, content=data['content'])
+            r.save()
+            q.comments.get(cid=data['cid']).replies.add(r)
+            q.save()
+            return Response({'msg': 'successfull'}, status.HTTP_200_OK)
+        except Comment.DoesNotExist:
+            return Response({'msg': 'comment not found'}, status.HTTP_406_NOT_ACCEPTABLE)
+        except SubComment.DoesNotExist:
+            return Response({'msg': 'invalid pid'}, status.HTTP_406_NOT_ACCEPTABLE)
+    content = {'msg': 'Not valid Data'}
+    return Response({'msg': content}, status.HTTP_406_NOT_ACCEPTABLE)
