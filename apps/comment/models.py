@@ -8,9 +8,11 @@ from ..post.models import Post
 
 
 class RowComment(models.Model):
-    xid = models.CharField(primary_key=True, default='', max_length=1000)
     account = models.ForeignKey(AccountBasic, on_delete=models.CASCADE)
     content = models.CharField(max_length=10000, default="")
+
+    def __str__(selg):
+        return self.content
 
 
 class SubComment(models.Model):
@@ -21,6 +23,5 @@ class SubComment(models.Model):
 
 
 class Comment(models.Model):
-    post = models.ForeignKey(
-        Post, on_delete=models.CASCADE, primary_key=True, default=None)
+    post = models.IntegerField(primary_key=True, default=0)
     comments = models.ManyToManyField(SubComment, related_name="commentss")
