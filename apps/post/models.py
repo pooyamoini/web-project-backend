@@ -6,7 +6,6 @@ from ..account.models import AccountBasic
 
 
 class Post(models.Model):
-    # comments
     nlikes = models.ManyToManyField(AccountBasic, related_name='nlikes')
     ndislikes = models.ManyToManyField(
         AccountBasic, related_name='ndislikes')
@@ -19,4 +18,3 @@ class Post(models.Model):
 
     def __str__(self):
         return self.account.name + '->' + self.content
-

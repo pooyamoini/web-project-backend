@@ -42,7 +42,6 @@ INSTALLED_APPS = [
     'apps.post',
     'apps.account_generic',
     'apps.follow',
-    'apps.comment',
     'apps.Numbers'
 ]
 
