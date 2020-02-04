@@ -7,8 +7,9 @@ from rest_framework.response import Response
 from django.contrib.auth.hashers import make_password
 from .models import Comment, RowComment, SubComment
 from ..post.models import Post
-from ..account.models import LoggInBasic
-from .serializers import CommentSerializer, SubCommentSerializers
+from ..account.models import LoggInBasic, AccountBasic
+from ..account.serializers import AccountSerializer
+from .serializers import CommentSerializer, SubCommentSerializers, RowCommentSerializer
 import string
 import random
 import datetime
@@ -31,12 +32,21 @@ def get_comments(request):
                     pk=x['main']).account.username
                 x['src'] = RowComment.objects.get(pk=x['main']).account.profile
                 x['main'] = RowComment.objects.get(pk=x['main']).content
-            return Response({'msg': comments_ser.data}, status.HTTP_200_OK)
+            to_return = comments_ser.data
+            for i in to_return:
+                replies = []
+                for c in i['replies']:
+                    r = RowCommentSerializer(RowComment.objects.get(pk=c)).data
+                    ac = AccountBasic.objects.get(pk=r['account'])
+                    r['account'] = AccountSerializer(ac).data
+                    replies.append(r)
+                i['replies'] = replies
+            return Response({'msg': to_return}, status.HTTP_200_OK)
         except LoggInBasic.DoesNotExist:
             return Response({'msg': 'invalid token'}, status.HTTP_406_NOT_ACCEPTABLE)
         except Post.DoesNotExist:
             return Response({'msg': 'invalid pid'}, status.HTTP_406_NOT_ACCEPTABLE)
-        except:
+        except Exception as e:
             return Response({'msg': []}, status.HTTP_200_OK)
     content = {'msg': 'Not valid Data'}
     return Response({'msg': content}, status.HTTP_406_NOT_ACCEPTABLE)
