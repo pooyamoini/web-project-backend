@@ -10,6 +10,7 @@ urlpatterns = [
     url(r'^homepage/$', views.get_homepage, name='homepage'),
     url(r'^homepage/news/$', views.get_homepage_news, name='news'),
     url(r'^homepage/hots/$', views.get_homepag_hots, name="hots"),
+    url(r'^homepage/interest/$', views.get_homepage_interest, name="interest"),
     url(r'^editpost/$', views.edit_post, name='edit'),
-    url(r'^delete/$', views.delete_post, name="delete")
+    url(r'^delete/$', views.delete_post, name="delete"),
 ]

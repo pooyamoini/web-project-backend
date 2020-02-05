@@ -9,6 +9,8 @@ from .models import Post
 from ..account.models import LoggInBasic, AccountBasic
 from ..account.serializers import AccountSerializer
 from ..account_generic.models import AccountGeneric
+from ..comment.models import Comment
+from ..comment.serializers import CommentSerializer
 from ..Numbers.models import Number
 from .serializers import PostSerializer
 import string
@@ -128,14 +130,10 @@ def get_homepage(request):
                 gen_a = AccountGeneric.objects.get(account=a)
                 for i in gen_a.posts.all():
                     date = get_correct_time(time=i.date_post)
-                    posts.append({'title': i.account.username, 'content': i.content,
-                                  'image': i.image, 'date': date, 'name': a.name, 'username': a.username, 'profile': a.profile,
-                                  'id': i.id_post, 'likes': len(i.nlikes.all()), 'dislikes': len(i.ndislikes.all()), 'realtime': return_delta_time(i.date_post)})
+                    posts.append(return_serializer(i, a, date, 1))
             for i in AccountGeneric.objects.get(account=my_account).posts.all():
                 date = get_correct_time(time=i.date_post)
-                posts.append({'title': my_account.username, 'content': i.content,
-                              'image': i.image, 'date': date, 'name': my_account.name, 'username': my_account.username, 'profile': my_account.profile,
-                              'id': i.id_post, 'likes': len(i.nlikes.all()), 'dislikes': len(i.ndislikes.all()), 'realtime': return_delta_time(i.date_post)})
+                posts.append(return_serializer(i, my_account, date, 0))
             suggests = get_suggestions(token=data['token'])
             return Response({'msg': {'posts': get_sorted_posts(posts), 'header': suggests}}, status.HTTP_200_OK)
         except LoggInBasic.DoesNotExist:
@@ -159,14 +157,10 @@ def get_homepage_news(request):
                 gen_a = AccountGeneric.objects.get(account=a)
                 for i in gen_a.posts.all():
                     date = get_correct_time(time=i.date_post)
-                    posts.append({'title': i.account.username, 'content': i.content,
-                                  'image': i.image, 'date': date, 'name': a.name, 'username': a.username, 'profile': a.profile,
-                                  'id': i.id_post, 'likes': len(i.nlikes.all()), 'dislikes': len(i.ndislikes.all()), 'realtime': return_delta_time(i.date_post)})
+                    posts.append(return_serializer(i, a, date, 1))
             for i in AccountGeneric.objects.get(account=my_account).posts.all():
                 date = get_correct_time(time=i.date_post)
-                posts.append({'title': my_account.username, 'content': i.content,
-                              'image': i.image, 'date': date, 'name': my_account.name, 'username': my_account.username, 'profile': my_account.profile,
-                              'id': i.id_post, 'likes': len(i.nlikes.all()), 'dislikes': len(i.ndislikes.all()), 'realtime': return_delta_time(i.date_post)})
+                posts.append(return_serializer(i, my_account, date, 0))
             suggests = get_suggestions(token=data['token'])
             return Response({'msg': {'posts': get_new_posts(posts), 'header': suggests}}, status.HTTP_200_OK)
         except LoggInBasic.DoesNotExist:
@@ -190,14 +184,10 @@ def get_homepag_hots(request):
                 gen_a = AccountGeneric.objects.get(account=a)
                 for i in gen_a.posts.all():
                     date = get_correct_time(time=i.date_post)
-                    posts.append({'title': i.account.username, 'content': i.content,
-                                  'image': i.image, 'date': date, 'name': a.name, 'username': a.username, 'profile': a.profile,
-                                  'id': i.id_post, 'likes': len(i.nlikes.all()), 'dislikes': len(i.ndislikes.all()), 'realtime': return_delta_time(i.date_post)})
+                    posts.append(return_serializer(i, a, date, 1))
             for i in AccountGeneric.objects.get(account=my_account).posts.all():
                 date = get_correct_time(time=i.date_post)
-                posts.append({'title': my_account.username, 'content': i.content,
-                              'image': i.image, 'date': date, 'name': my_account.name, 'username': my_account.username, 'profile': my_account.profile,
-                              'id': i.id_post, 'likes': len(i.nlikes.all()), 'dislikes': len(i.ndislikes.all()), 'realtime': return_delta_time(i.date_post)})
+                posts.append(return_serializer(i, my_account, date, 0))
             posts = sorted(posts, key=lambda k: -k['likes'])
             suggests = get_suggestions(token=data['token'])
             return Response({'msg': {'posts': posts, 'header': suggests}}, status.HTTP_200_OK)
@@ -207,11 +197,57 @@ def get_homepag_hots(request):
     return Response({'msg': content}, status.HTTP_406_NOT_ACCEPTABLE)
 
 
+@csrf_exempt
+@api_view(['POST'])
+def get_homepage_interest(request):
+    data = request.data
+    if len(data.keys() & {'token'}) >= 1:
+        try:
+            my_account = LoggInBasic.objects.get(token=data['token']).account
+            posts = get_interest_posts(my_account)
+            suggests = get_suggestions(token=data['token'])
+            return Response({'msg': {'posts': posts, 'header': suggests}}, status.HTTP_200_OK)
+        except LoggInBasic.DoesNotExist:
+            return Response({'msg': 'invalid token'}, status.HTTP_406_NOT_ACCEPTABLE)
+    content = {'msg': 'Not valid Data'}
+    return Response({'msg': content}, status.HTTP_406_NOT_ACCEPTABLE)
+
+
+def get_interest_posts(my_account):
+    posts = []
+    for c in Comment.objects.all():
+        for x in c.comments.all():
+            if x.main.account.username == my_account.username:
+                p = Post.objects.get(pk=c.post)
+                date = get_correct_time(time=p.date_post)
+                account = p.account
+                if not any(d['id'] == p.id_post for d in posts):
+                    posts.append(return_serializer(
+                        p, account, date, 1))
+            for z in x.replies.all():
+                if z.account.username == my_account.username:
+                    p = Post.objects.get(pk=c.post)
+                    date = get_correct_time(time=p.date_post)
+                    account = p.account
+                    if not any(d['id'] == p.id_post for d in posts):
+                        posts.append(return_serializer(
+                            p, account, date, 1))
+    return posts
+
+
+def return_serializer(post, account, date, type_ser=1):
+    title = account.username if type_ser == 0 else post.account.username
+    return {'title': account.username, 'content': post.content,
+            'image': post.image, 'date': date, 'name': account.name, 'username': account.username, 'profile': account.profile,
+            'id': post.id_post, 'likes': len(post.nlikes.all()), 'dislikes': len(post.ndislikes.all()), 'realtime': return_delta_time(post.date_post)}
+
+
 def get_suggestions(token):
     random_post_following = get_random_following(token)
     random_post_hot = get_random_hots()
     random_post_new = get_random_new()
-    return {'hot': random_post_hot, 'new': random_post_new, 'follow': random_post_following}
+    random_post_interest = get_random_interest(token)
+    return {'hot': random_post_hot, 'new': random_post_new, 'follow': random_post_following, 'interest': random_post_interest}
 
 
 def get_random_following(token):
@@ -246,6 +282,15 @@ def get_random_new():
         '-date_post'), many=True).data
     post = Post.objects.get(
         pk=posts[random.randrange(min(5, len(posts)))]['id_post'])
+    return PostSerializer(post).data
+
+
+def get_random_interest(token):
+    my_account = LoggInBasic.objects.get(token=token).account
+    posts = get_interest_posts(my_account)
+    if len(posts) == 0:
+        return {}
+    post = Post.objects.get(pk=posts[random.randrange(len(posts))]["id"])
     return PostSerializer(post).data
 
 
