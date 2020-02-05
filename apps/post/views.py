@@ -138,6 +138,8 @@ def get_homepage(request):
             return Response({'msg': {'posts': get_sorted_posts(posts), 'header': suggests}}, status.HTTP_200_OK)
         except LoggInBasic.DoesNotExist:
             return Response({'msg': 'invalid token'}, status.HTTP_406_NOT_ACCEPTABLE)
+        except Post.DoesNotExist:
+            return Response({'msg': {'posts': [], 'header': []}}, status.HTTP_406_NOT_ACCEPTABLE)
     content = {'msg': 'Not valid Data'}
     return Response({'msg': content}, status.HTTP_406_NOT_ACCEPTABLE)
 
