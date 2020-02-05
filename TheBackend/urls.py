@@ -12,5 +12,6 @@ urlpatterns = [
     path('api/profile/', include('apps.account_generic.urls')),
     path('api/comment/', include('apps.comment.urls')),
     path('api/search', include('apps.search.urls')),
-    path('api/notification', include('apps.notification.urls'))
+    path('api/notification', include('apps.notification.urls')),
+    path('api/channel', include('apps.channel.urls')),
 ]
