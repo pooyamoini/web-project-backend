@@ -44,7 +44,8 @@ INSTALLED_APPS = [
     'apps.follow',
     'apps.Numbers',
     'apps.comment',
-    'apps.search'
+    'apps.search',
+    'apps.notification'
 ]
 
 
