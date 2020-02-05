@@ -101,3 +101,33 @@ def add_reply(request):
             return Response({'msg': 'invalid pid'}, status.HTTP_406_NOT_ACCEPTABLE)
     content = {'msg': 'Not valid Data'}
     return Response({'msg': content}, status.HTTP_406_NOT_ACCEPTABLE)
+
+
+@csrf_exempt
+@api_view(['POST'])
+def delete_main_comment(request):
+    data = request.data
+    cid = data["cid"]
+    try:
+        SubComment.objects.get(cid=cid).delete()
+        return Response({'msg': 'successfull'}, status.HTTP_200_OK)
+    except:
+        content = {'msg': 'Not valid Data'}
+        return Response({'msg': content}, status.HTTP_406_NOT_ACCEPTABLE)
+
+
+@csrf_exempt
+@api_view(['POST'])
+def edit_main_comment(request):
+    data = request.data
+    cid = data["cid"]
+    content = data["content"]
+    try:
+        s = SubComment.objects.get(cid=cid)
+        s.main.content = content
+        s.main.save()
+        s.save()
+        return Response({'msg': 'successfull'}, status.HTTP_200_OK)
+    except:
+        content = {'msg': 'Not valid Data'}
+        return Response({'msg': content}, status.HTTP_406_NOT_ACCEPTABLE)
